@@ -6,7 +6,7 @@ from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())
 
-# Вместо BOT TOKEN HERE нужно вставить токен вашего бота, полученный у @BotFather
+# Вместо API_TOKEN нужно вставить токен вашего бота, полученный у @BotFather
 API_TOKEN: str = os.environ.get('API_TOKEN')
 
 

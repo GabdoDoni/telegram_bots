@@ -30,6 +30,7 @@ def get_random_number() -> int:
 # Этот хэндлер будет срабатывать на команду "/start"
 @dp.message(Command(commands=["start"]))
 async def process_start_command(message: Message):
+    print(message.from_user.id)
     await message.answer('Привет!\nМеня зовут бот-загадка чисел!\nУгадываете число от 1 до 100\nХотите сыграть?'
                          '\n\n\nЕсли вам что-то непонятно напишите /help')
     if message.from_user.id not in users:
@@ -119,33 +120,41 @@ async def negative_answer(message: Message):
 # Этот хэндлер будет срабатывать на отправку пользователем чисел от 1 до 100
 @dp.message(lambda x: x.text and x.text.isdigit() and 1 <= int(x.text) <= 100)
 async def what_number(message: Message):
-
-    if users[message.from_user.id]['in_game']:
-        if int(message.text) == users[message.from_user.id]['secret_number']:
+    if message.from_user.id not in users:
+        users[message.from_user.id] = {'in_game': False,
+                                       'secret_number': None,
+                                       'attempts': None,
+                                       'total_games': 0,
+                                       'wins': 0}
+        await message.answer('Здорова бандиты, чтобы начать нажми да')
+    elif users[message.from_user.id]['in_game']:
+        if int(message.text) == users[message.from_user.id]['secret_number'] and users[message.from_user.id]['attempts'] > 0:
             users[message.from_user.id]['in_game'] = False
             users[message.from_user.id]['total_games'] += 1
             users[message.from_user.id]['wins'] += 1
             await message.answer('Ура!!! Вы угадали число!\n'
                                  f'Количество оставшихся попыток {users[message.from_user.id]["attempts"]}\n\n'
                                  'Может, сыграем еще?')
-        elif int(message.text) > users[message.from_user.id]['secret_number']:
+
+        elif int(message.text) > users[message.from_user.id]['secret_number'] and users[message.from_user.id]['attempts'] > 0:
             users[message.from_user.id]['attempts'] -= 1
             await message.answer('Ваше число больше моего'
                                  f'\nОсталось попыток {users[message.from_user.id]["attempts"]}')
-        elif int(message.text) < users[message.from_user.id]['secret_number']:
+
+        elif int(message.text) < users[message.from_user.id]['secret_number'] and users[message.from_user.id]['attempts'] > 0:
             users[message.from_user.id]['attempts'] -= 1
             await message.answer('Ваше число меньше моего'
                                  f'\nОсталось попыток {users[message.from_user.id]["attempts"]}')
-        elif users[message.from_user.id]['attempts'] == 0:
+
+        if users[message.from_user.id]['attempts'] == 0:
             users[message.from_user.id]['in_game'] = False
             users[message.from_user.id]['total_games'] += 1
             await message.answer('Вы проиграли'
+                                 f'\nЗагаднное число {users[message.from_user.id]["secret_number"]} '
                                  f'\n\nЕсли хотите сыграть напишите')
-        else:
-            await message.answer('упсс')
 
     else:
-        await message.answer('Хотите сыграть')
+        await message.answer('Хотите сыграть?')
 
 
 # Этот хэндлер будет срабатывать на остальные любые сообщения

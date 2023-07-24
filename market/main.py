@@ -1,20 +1,45 @@
-import os
+import asyncio
+import logging
 
-from environs import Env
+from aiogram import Bot, Dispatcher
+from config_data.config import Config, load_config
+from handlers import other_handlers, user_handlers
+from market.keyboards.set_menu import set_main_menu
 
-from config_data.config import load_config
-
-env = Env()
-env.read_env()
-
-config = load_config('.env')
+# Инициализируем логгер
+logger = logging.getLogger(__name__)
 
 
-# Выводим на печать, чтобы проверить
-print('BOT_TOKEN:', config.tg_bot.token)
-print('ADMIN_IDS:', config.tg_bot.admin_ids)
+# Функция конфигурирования и запуска бота
+async def main():
+    # Конфигурируем логирование
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(filename)s:%(lineno)d #%(levelname)-8s '
+               '[%(asctime)s] - %(name)s - %(message)s')
 
-print('DATABASE:', config.db.database)
-print('DB_HOST:', config.db.db_host)
-print('DB_USER:', config.db.db_user)
-print('DB_PASSWORD:', config.db.db_password)
+    # Выводим в консоль информацию о начале запуска бота
+    logger.info('Starting bot')
+
+    # Загружаем конфиг в переменную config
+    config: Config = load_config()
+
+    # Инициализируем бот и диспетчер
+    bot: Bot = Bot(token=config.tg_bot.token,
+                   parse_mode='HTML')
+    dp: Dispatcher = Dispatcher()
+
+    # Настраиваем главное меню бота
+    await set_main_menu(bot)
+
+    # Регистриуем роутеры в диспетчере
+    dp.include_router(user_handlers.router)
+    dp.include_router(other_handlers.router)
+
+    # Пропускаем накопившиеся апдейты и запускаем polling
+    await bot.delete_webhook(drop_pending_updates=True)
+    await dp.start_polling(bot)
+
+
+if __name__ == '__main__':
+    asyncio.run(main())

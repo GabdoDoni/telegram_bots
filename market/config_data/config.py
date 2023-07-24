@@ -19,24 +19,26 @@ class TgBot:
 @dataclass
 class Config:
     tg_bot: TgBot
-    db: DatabaseConfig
+    # db: DatabaseConfig
 
 
-def load_config(path: str | None) ->Config:
+def load_config(path: str | None = None) -> Config:
 
     # Создаем экземпляр класса Env
     env: Env = Env()
 
     # Добавляем в переменную окружения данные из файла .env
-    env.read_env()
+    env.read_env(path)
 
     # Создаем экземпляр класса Config и наполняем данными
     return Config(tg_bot=TgBot(token=env('BOT_TOKEN'),
-                               admin_ids=list(map(int, env.list('ADMIN_IDS')))),
-                  db=DatabaseConfig(database=env('DATABASE'),
-                                    db_host=env('DB_HOST'),
-                                    db_user=env('DB_USER'),
-                                    db_password=env('DB_PASSWORD')))
+                               admin_ids=list(map(int, env.list('ADMIN_IDS')))))
+
+
+# db = DatabaseConfig(database=env('DATABASE'),
+#                     db_host=env('DB_HOST'),
+#                     db_user=env('DB_USER'),
+#                     db_password=env('DB_PASSWORD'))
 
 
 

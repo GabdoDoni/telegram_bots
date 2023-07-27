@@ -5,6 +5,7 @@ from aiogram import Bot, Dispatcher
 from config_data.config import Config, load_config
 from handlers import other_handlers, user_handlers
 from market.keyboards.set_menu import set_main_menu
+from aiogram.fsm.storage.memory import MemoryStorage
 
 # Инициализируем логгер
 logger = logging.getLogger(__name__)
@@ -12,6 +13,9 @@ logger = logging.getLogger(__name__)
 
 # Функция конфигурирования и запуска бота
 async def main():
+    # Инициализируем хранилище (создаем экземпляр класса MemoryStorage)
+    storage: MemoryStorage = MemoryStorage()
+
     # Конфигурируем логирование
     logging.basicConfig(
         level=logging.INFO,
@@ -27,7 +31,7 @@ async def main():
     # Инициализируем бот и диспетчер
     bot: Bot = Bot(token=config.tg_bot.token,
                    parse_mode='HTML')
-    dp: Dispatcher = Dispatcher()
+    dp: Dispatcher = Dispatcher(storage=storage)
 
     # Настраиваем главное меню бота
     await set_main_menu(bot)

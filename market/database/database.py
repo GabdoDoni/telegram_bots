@@ -1,5 +1,10 @@
-# Создаем шаблон заполнения словаря с пользователями
-user_dict_template: dict = {'list': []}
+import sqlite3
+from aiogram.fsm.storage.memory import MemoryStorage
 
-# Инициализируем "базу данных"
-users_db: dict = {}
+
+# Инициализируем хранилище (создаем экземпляр класса MemoryStorage)
+storage: MemoryStorage = MemoryStorage()
+
+# Соединение с базой данных
+conn = sqlite3.connect('market.db', timeout=10)
+cursor = conn.cursor()

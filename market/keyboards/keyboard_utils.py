@@ -1,7 +1,7 @@
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from market.lexicon.lexicon_ru import LEXICON
-# from market.services.services import book
+from market.database.database import cursor, conn
 
 
 # Создаем объекты инлайн-кнопок
@@ -26,38 +26,56 @@ edit_keyboard: InlineKeyboardMarkup = InlineKeyboardMarkup(
                      [delete_button]])
 
 
-def create_list_keyboard(*args: int) -> InlineKeyboardMarkup:
+# Функция для добаление записи
+def db_add_product(user_id: int, product: str):
+    cursor.execute('INSERT INTO market (user_id, product) VALUES (?, ?)', (user_id, product))
+    conn.commit()
+
+
+# Функция для создания инлайн-клавиатуры с задачами
+def list_product_keyboard(products: list) -> InlineKeyboardMarkup:
     # Создаем объект клавиатуры
-    kb_builder: InlineKeyboardBuilder = InlineKeyboardBuilder()
-    # Наполняем клавиатуру кнопками-закладками в порядке возрастания
-    count = 1
-    for button in sorted(args):
-        kb_builder.row(InlineKeyboardButton(
-            text=f'{count} - {button}',
-            callback_data=str(button)))
-        count += 1
-    # Добавляем в клавиатуру в конце две кнопки "Редактировать" и "Отменить"
-    kb_builder.row(InlineKeyboardButton(
-                        text=LEXICON['del'],
-                        callback_data='del'),
-                   InlineKeyboardButton(
-                        text=LEXICON['cancel'],
-                        callback_data='cancel'),
-                   width=2)
-    return kb_builder.as_markup()
+    kboard: InlineKeyboardBuilder = InlineKeyboardBuilder()
+
+    # Добавляем кнопки для каждой задачи
+    for product in products:
+        print(product)
+        if product[2] == 'нет':
+            product_id = product[0]
+            kboard.row(InlineKeyboardButton(
+                text=f'{product[1]}',
+                callback_data=f'done:{product_id}'))
+    # Добавляем в клавиатуру две кнопки "Добавить" и "Удалить"
+    kboard.row(InlineKeyboardButton(
+                    text='Добавить',
+                    callback_data='add'),
+               InlineKeyboardButton(
+                    text='Удалить',
+                    callback_data='del'),
+               width=2)
+    # Добавляем в клавиатуру в конце кнопку "Назад"
+    kboard.row(InlineKeyboardButton(
+                    text='Назад',
+                    callback_data='home'))
+    return kboard.as_markup()
 
 
-def create_edit_keyboard(*args: int) -> InlineKeyboardMarkup:
+# Функция для создания инлайн-клавиатуры для удаление из списка
+def delete_product_keyboard(products: list) -> InlineKeyboardMarkup:
     # Создаем объект клавиатуры
-    kb_builder: InlineKeyboardBuilder = InlineKeyboardBuilder()
-    # Наполняем клавиатуру кнопками-закладками в порядке возрастания
-    for button in sorted(args):
-        kb_builder.row(InlineKeyboardButton(
-            text=f'{LEXICON["delete"]} - {button}',
-            callback_data=f'{button}del'))
-    # Добавляем в конец клавиатуры кнопку "Отменить"
-    kb_builder.row(InlineKeyboardButton(
-                        text=LEXICON['cancel'],
-                        callback_data='cancel'))
-    return kb_builder.as_markup()
+    kboard: InlineKeyboardBuilder = InlineKeyboardBuilder()
 
+    # Добавляем кнопки для каждой задачи
+    for product in products:
+        print(product)
+        if product[2] == 'нет':
+            product_id = product[0]
+            kboard.row(InlineKeyboardButton(
+                text=f'{product[1]}',
+                callback_data=f'del:{product_id}'))
+    # Добавляем в клавиатуру в конце кнопку "Назад"
+    kboard.row(InlineKeyboardButton(
+                    text='Назад',
+                    callback_data='list'))
+
+    return kboard.as_markup()
